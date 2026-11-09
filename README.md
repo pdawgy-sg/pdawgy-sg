@@ -12,8 +12,8 @@
 <img src="assets/logo.webp" alt="French bulldog in a black PDAWGY hoodie at a laptop, holding a trading card. Art by Chan Hou." width="360">
 </td>
 <td valign="middle">
-<p>[placeholder: one or two sentences about you]</p>
-<p>[placeholder: what you like building, learning, or collecting]</p>
+<p>I try to dabble in a bit of tech, writing my own projects, and would love to contribute to an open source project one day.</p>
+<p>Maintaining a couple of websites. Was working as a devops engineer, but mostly do backend now.</p>
 </td>
 </tr>
 </table>
@@ -22,15 +22,13 @@
   <img src="assets/now.svg" alt="Now dabbling" width="880">
 </p>
 
-- `[placeholder: something you are trying]`
-- `[placeholder: a project or a rabbit hole]`
-- `[placeholder: a tool or language you are poking at]`
+- Trying out Grok Bot, trying to achieve godlike PR counts like Lauren.
+- >.<
+- TLA+
 
 <p align="center">
-  <img src="assets/stack.svg" alt="Placeholder tech-stack trading cards. Swap the labels for your own stack." width="880">
+  <img src="assets/stack.svg" alt="Tech stack trading cards. Code: Go, Node.js, TypeScript, Python, Terraform, Ansible. Tool: Grok Bot and Herdr. Data: meh. Cloud: AWS, GCP, and some Chinese cloud." width="880">
 </p>
-
-> [placeholder: your stack. the cards above are stand-ins]
 
 <p align="center">
   <img src="assets/contrib.svg" alt="Public GitHub contribution graph, themed in navy, Dracula purple, and peach." width="880">
@@ -41,11 +39,8 @@
 </p>
 
 <p align="center">
-  <img src="assets/footer.svg" alt="Footer. PDAWGY. Fill in the placeholders below." width="880">
+  <img src="assets/footer.svg" alt="Footer. PDAWGY. Dabbling in tech." width="880">
 </p>
-
-- [placeholder: link]
-- [placeholder: link]
 
 ---
 

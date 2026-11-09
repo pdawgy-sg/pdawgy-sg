@@ -161,7 +161,64 @@ def divider(name: str, title: str, icon: list[str], atlas: dict) -> None:
     svg.save(OUT / name, title)
 
 
-def mini_card(svg: Svg, x: int, y: int, w: int, h: int, label: str, atlas: dict) -> None:
+# 21px glyphs at scale 2. Wide enough for "Was using Pi mostly," and narrow
+# enough that "as well" and "as a daily driver." stay on their own lines.
+BODY_SCALE = 2
+BODY_MAX_W = 328
+STACK_CARDS = [
+    ("CODE", ["Go", "Node.js", "TypeScript", "Python", "Terraform", "Ansible"]),
+    (
+        "TOOL",
+        [
+            "Grok Bot",
+            "Herdr",
+            "Was using Pi mostly, changed to Grok Bot as a daily driver.",
+        ],
+    ),
+    ("DATA", ["meh"]),
+    ("CLOUD", ["AWS", "GCP", "some Chinese cloud as well"]),
+]
+
+
+def wrap_text(text: str, scale: int, max_w: int, atlas: dict) -> list[str]:
+    words = text.split(" ")
+    lines: list[str] = []
+    current = ""
+    for word in words:
+        trial = word if not current else f"{current} {word}"
+        if text_width(trial, scale, atlas) <= max_w:
+            current = trial
+            continue
+        if not current or text_width(word, scale, atlas) > max_w:
+            raise SystemExit(f"{word!r} is wider than the card ({max_w}px)")
+        lines.append(current)
+        current = word
+    if current:
+        lines.append(current)
+    return lines
+
+
+def card_lines(parts: list[str], atlas: dict) -> list[str]:
+    lines: list[str] = []
+    for part in parts:
+        lines.extend(wrap_text(part, BODY_SCALE, BODY_MAX_W, atlas))
+    joined = " ".join(lines)
+    source = " ".join(parts)
+    if joined != source:
+        raise SystemExit(f"wrap changed card text:\n{source}\n{joined}")
+    return lines
+
+
+def mini_card(
+    svg: Svg,
+    x: int,
+    y: int,
+    w: int,
+    h: int,
+    label: str,
+    lines: list[str],
+    atlas: dict,
+) -> None:
     svg.rect(x, y, w, h, BG)
     svg.rect(x + 4, y + 4, w - 8, h - 8, PANEL)
     svg.rect(x + 4, y + 4, w - 8, 3, PURPLE)
@@ -172,34 +229,70 @@ def mini_card(svg: Svg, x: int, y: int, w: int, h: int, label: str, atlas: dict)
         svg.rect(cx, cy, 8, 8, PEACH)
     label_w = text_width(label, 2, atlas)
     draw_text(svg, label, x + (w - label_w) // 2, y + 18, 2, BLUE, atlas)
-    mark = "??"
-    mark_w = text_width(mark, 4, atlas)
-    draw_shadow_text(svg, mark, x + (w - mark_w) // 2, y + 48, 4, PEACH, DEEP, atlas)
-    left = "ATK ??"
-    right = "DEF ??"
-    draw_text(svg, left, x + 16, y + h - 28, 1, CREAM, atlas)
-    right_w = text_width(right, 1, atlas)
-    draw_text(svg, right, x + w - 16 - right_w, y + h - 28, 1, CREAM, atlas)
+    body_top = y + 18 + text_height(2, atlas) + 14
+    body_bot = y + h - 18
+    # One short word keeps the old center-of-card treatment.
+    if len(lines) == 1 and text_width(lines[0], 4, atlas) <= w - 64:
+        scale = 4
+        word_w = text_width(lines[0], scale, atlas)
+        word_h = text_height(scale, atlas)
+        draw_shadow_text(
+            svg,
+            lines[0],
+            x + (w - word_w) // 2,
+            body_top + (body_bot - body_top - word_h) // 2,
+            scale,
+            PEACH,
+            DEEP,
+            atlas,
+        )
+        return
+    scale = BODY_SCALE
+    gap = 8
+    line_h = text_height(scale, atlas)
+    block = len(lines) * line_h + (len(lines) - 1) * gap
+    room = body_bot - body_top
+    if block > room:
+        raise SystemExit(f"{label} needs {block}px of card face, only {room}px free")
+    cursor = body_top + (room - block) // 2
+    for line in lines:
+        line_w = text_width(line, scale, atlas)
+        if line_w > BODY_MAX_W:
+            raise SystemExit(f"{label} line {line!r} is {line_w}px")
+        draw_text(svg, line, x + (w - line_w) // 2, cursor, scale, CREAM, atlas)
+        cursor += line_h + gap
 
 
 def write_stack(atlas: dict) -> None:
-    height = 292
+    prepared = [(label, card_lines(parts, atlas)) for label, parts in STACK_CARDS]
+    line_h = text_height(BODY_SCALE, atlas)
+    gap_line = 8
+    max_lines = max(len(lines) for _, lines in prepared)
+    block = max_lines * line_h + (max_lines - 1) * gap_line
+    card_w = BODY_MAX_W + 72
+    card_h = 18 + text_height(2, atlas) + 14 + block + 18
+    gap = 16
+    origin_x = (W - (card_w * 2 + gap)) // 2
+    origin_y = 108
+    height = origin_y + card_h * 2 + gap + 24
     svg = Svg(W, height)
     chrome(svg)
     blit(svg, GEM, 32, 28, 3, SPRITE_COLORS)
     draw_shadow_text(svg, "TECH STACK", 32 + len(GEM[0]) * 3 + 16, 34, 3, CREAM, DEEP, atlas)
-    note = "PLACEHOLDER CARDS"
-    note_w = text_width(note, 1, atlas)
-    draw_text(svg, note, W - 36 - note_w, 46, 1, PEACH, atlas)
-    labels = ["CODE", "TOOL", "DATA", "CLOUD"]
-    gap = 16
-    card_w = 196
-    card_h = 148
-    row_w = len(labels) * card_w + (len(labels) - 1) * gap
-    origin_x = (W - row_w) // 2
-    for index, label in enumerate(labels):
-        mini_card(svg, origin_x + index * (card_w + gap), 112, card_w, card_h, label, atlas)
-    svg.save(OUT / "stack.svg", "Placeholder tech stack cards")
+    for index, (label, lines) in enumerate(prepared):
+        col = index % 2
+        row = index // 2
+        mini_card(
+            svg,
+            origin_x + col * (card_w + gap),
+            origin_y + row * (card_h + gap),
+            card_w,
+            card_h,
+            label,
+            lines,
+            atlas,
+        )
+    svg.save(OUT / "stack.svg", "Tech stack trading cards")
 
 
 def write_bonus(atlas: dict) -> None:
@@ -223,15 +316,16 @@ def write_footer(atlas: dict) -> None:
     svg = Svg(W, height)
     chrome(svg)
     title = "PDAWGY"
-    title_w = text_width(title, 4, atlas)
-    draw_shadow_text(svg, title, (W - title_w) // 2, 36, 4, PEACH, DEEP, atlas)
     line = "DABBLING IN TECH"
+    title_h = text_height(4, atlas)
+    line_h = text_height(2, atlas)
+    gap = 16
+    top = (height - (title_h + gap + line_h)) // 2
+    title_w = text_width(title, 4, atlas)
+    draw_shadow_text(svg, title, (W - title_w) // 2, top, 4, PEACH, DEEP, atlas)
     line_w = text_width(line, 2, atlas)
-    draw_text(svg, line, (W - line_w) // 2, 86, 2, CREAM, atlas)
-    hint = "FILL IN THE BRACKETS BELOW"
-    hint_w = text_width(hint, 1, atlas)
-    draw_text(svg, hint, (W - hint_w) // 2, 124, 1, BLUE, atlas)
-    svg.save(OUT / "footer.svg", "PDAWGY footer")
+    draw_text(svg, line, (W - line_w) // 2, top + title_h + gap, 2, CREAM, atlas)
+    svg.save(OUT / "footer.svg", "PDAWGY. Dabbling in tech.")
 
 
 def main() -> None:
