@@ -23,7 +23,7 @@
 </p>
 
 - Trying out Grok Bot, trying to achieve godlike PR counts like Lauren.
-- >.<
+- \>.<
 - TLA+
 
 <p align="center">
