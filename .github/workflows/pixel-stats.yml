@@ -1,0 +1,32 @@
+name: pixel-stats
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "cursor/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Render public contribution graph
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_LOGIN: pdawgy-sg
+        run: python3 scripts/render_contrib.py
+
+      - name: Upload graph
+        uses: actions/upload-artifact@v4
+        with:
+          name: contrib-svg
+          path: assets/contrib.svg
+          if-no-files-found: error
