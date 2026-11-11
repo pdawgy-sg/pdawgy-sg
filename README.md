@@ -42,12 +42,4 @@
   <img src="assets/footer.svg" alt="Footer. PDAWGY. Dabbling in tech." width="880">
 </p>
 
----
-
-Banner and logo are Chan Hou's own art.
-
-Pixel type is **Press Start 2P**, Copyright 2012 The Press Start 2P Project Authors (cody@zone38.net), with Reserved Font Name "Press Start 2P", licensed under the [SIL Open Font License 1.1](fonts/OFL.txt). The font file is [`fonts/PressStart2P-Regular.ttf`](fonts/PressStart2P-Regular.ttf). Headers, cards, and the contribution graph outline that font into SVG rectangles, so the page does not load a remote font.
-
-Regenerate the cards with `python3 scripts/render_assets.py` and the graph with `python3 scripts/render_contrib.py`.
-
 <!-- easter egg: this player loves grok bot -->
